@@ -31,6 +31,7 @@ my-recruitment-ai/
 ├── requirements.txt
 └── README.md
 
+
 ---
 
 ## 🚀 How to Run the Project
