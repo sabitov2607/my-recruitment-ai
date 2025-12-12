@@ -10,6 +10,7 @@ The project consists of two parts:
 
 ## 📁 Project Structure
 
+```
 my-recruitment-ai/
 │
 ├── frontend/
@@ -30,7 +31,7 @@ my-recruitment-ai/
 ├── skills.txt
 ├── requirements.txt
 └── README.md
-
+```
 
 ---
 
