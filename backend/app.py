@@ -1,39 +1,53 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+# backend/app.py
+
 import os
-import uuid
-from parser import extract_text_from_file
-from nlp import analyze_candidate
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-app = Flask(__name__)
-CORS(app)
+from ai_module import process_candidate
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app = FastAPI()
 
-@app.route("/analyze", methods=["POST"])
-def analyze():
-    job_description = request.form.get("jobDescription", "")
-    files = request.files.getlist("cvFiles")
+# ----------------------
+# CORS (React uchun)
+# ----------------------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    if not files:
-        return jsonify({"error": "No files uploaded"}), 400
+# ----------------------
+# uploads folder
+# ----------------------
+UPLOAD_DIR = "backend/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    results = []
+app.mount("/static", StaticFiles(directory=UPLOAD_DIR), name="static")
 
-    for file in files:
-        unique_name = f"{uuid.uuid4()}_{file.filename}"
-        filepath = os.path.join(UPLOAD_FOLDER, unique_name)
 
-        file.save(filepath)
+# ----------------------
+# API ROUTE
+# ----------------------
+@app.post("/analyze")
+async def analyze_candidate(
+    file: UploadFile = File(...),
+    vacancy: str = Form(...)
+):
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-        text = extract_text_from_file(filepath)
-        analysis = analyze_candidate(text, job_description)
+    # CV fileni saqlash
+    with open(file_path, "wb") as f:
+        f.write(await file.read())
 
-        analysis["candidate"] = file.filename
-        results.append(analysis)
+    # AI module
+    result = process_candidate(file_path, vacancy)
 
-    return jsonify({"results": results})
-
-if __name__ == "__main__":
-    app.run(debug=True)
+    return {
+        "filename": file.filename,
+        "skills": result["skills"],
+        "match_score": result["match_score"],
+        "preview": result["cv_text"]
+    }
