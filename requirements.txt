@@ -1,9 +1,5 @@
-fastapi
-uvicorn[standard]
-python-multipart
-sentence-transformers
-spacy
-scikit-learn
-numpy
+flask
+flask-cors
 python-docx
+docx2txt
 PyPDF2
