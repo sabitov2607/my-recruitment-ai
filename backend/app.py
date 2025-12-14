@@ -1,5 +1,3 @@
-# backend/app.py
-
 import os
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +7,6 @@ from ai_module import process_candidate
 
 app = FastAPI()
 
-# ----------------------
-# CORS (React uchun)
-# ----------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,18 +14,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ----------------------
-# uploads folder
-# ----------------------
 UPLOAD_DIR = "backend/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=UPLOAD_DIR), name="static")
 
-
-# ----------------------
-# API ROUTE
-# ----------------------
 @app.post("/analyze")
 async def analyze_candidate(
     file: UploadFile = File(...),
@@ -38,11 +26,9 @@ async def analyze_candidate(
 ):
     file_path = os.path.join(UPLOAD_DIR, file.filename)
 
-    # CV fileni saqlash
     with open(file_path, "wb") as f:
         f.write(await file.read())
 
-    # AI module
     result = process_candidate(file_path, vacancy)
 
     return {
